@@ -1,0 +1,529 @@
+package
+{
+	import com.greensock.*;
+	import com.greensock.easing.*;
+	import com.greensock.plugins.*;
+	import com.hexagonstar.display.bitmaps.AnimatedBitmap;
+	import com.codechiev._2d.*;
+	import com.metasoft.flying.vo.*;
+	import com.metasoft.flying.vo.general.*;
+	
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
+	import flash.display.BlendMode;
+	import flash.display.DisplayObject;
+	import flash.display.Loader;
+	import flash.display.Shape;
+	import flash.display.Sprite;
+	import flash.display.StageQuality;
+	import flash.events.*;
+	import flash.filters.BitmapFilter;
+	import flash.filters.BitmapFilterQuality;
+	import flash.filters.BlurFilter;
+	import flash.geom.ColorTransform;
+	import flash.geom.Matrix;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
+	import flash.geom.Vector3D;
+	import flash.net.URLRequest;
+	import flash.net.registerClassAlias;
+	import flash.text.TextField;
+	import flash.text.TextFieldType;
+	import flash.ui.Keyboard;
+	import flash.utils.Dictionary;
+	import flash.utils.Timer;
+	
+	[SWF(width="1024", height="768", backgroundColor="#111111")]
+	
+	/**********************************************************************************
+	 * frameRate="1"
+	 * Main Class
+	 * @version 1.0.0
+	 **********************************************************************************/
+	public class BitmapAnimTest extends Sprite
+	{
+		private static var SPEED:Number = 50;
+		
+		[Embed(source="plane.png")]
+		private var PlaneClass:Class;
+		[Embed(source="lighting.png")]
+		private var LightClass:Class;
+		[Embed(source="missle.png")]
+		private var MissleClass:Class;
+		[Embed(source="smoke.png")]
+		private var SmokeClass:Class;
+		[Embed(source="cosmos.jpg")]
+		private var CosmosClass:Class;
+		[Embed(source="explode.png")]
+		private var ExplodeClass:Class;
+		private var _animLigtening:AnimatedBitmap;
+		private var _cosmos:Bitmap;
+		private var _planeMax:uint=16;
+		private var _missleMax:uint=16;
+		private var _missleArray:Vector.<Missle> = new Vector.<Missle>();
+		private var _explodeMax:uint=16;
+		private var _explodeArray:Vector.<Explode> = new Vector.<Explode>();
+		private var _smokeMax:uint=250;
+		private var _smokeArray:Vector.<Smoke> = new Vector.<Smoke>();
+		private var _planeArray:Vector.<Plane> = new Vector.<Plane>();
+		private var tween:TweenMax;
+			
+		//战争迷雾
+		private var _fogOfWar:BitmapData;
+		private var _fogOfWarBackground:Bitmap;
+		private var _fogOfWarBackgroundData:BitmapData;
+		private var _fogOfWarMask:Bitmap;
+		private var _fogOfWarFilter:BitmapFilter;
+		private var _fogOfWarLayer:Sprite = new Sprite();
+		
+		private var _socketbase:SocketBase;
+		private var _userVO:UserVO;
+		private var _team:uint;
+		/******************************************************************************
+		 * Constructs a new Main instance.
+		 */
+		public function BitmapAnimTest()
+		{
+			stage.quality = StageQuality.LOW;
+			//stage.frameRate = 30;					
+
+			//背景
+			_cosmos =  Bitmap(new CosmosClass());
+			stage.addChildAt(_cosmos,0);
+			//战争迷雾
+			_fogOfWarBackgroundData = new BitmapData(stage.fullScreenWidth,stage.fullScreenHeight,true,0xffffff);
+			_fogOfWarMask = new Bitmap(new BitmapData(300, 300,true,0xffffff));
+			_fogOfWarFilter = new BlurFilter(50, 50, BitmapFilterQuality.HIGH);
+			
+			_fogOfWar = _cosmos.bitmapData.clone();
+			var ct:ColorTransform = new ColorTransform();
+			ct.alphaMultiplier = 0.2; 
+			_fogOfWar.colorTransform(new Rectangle(0,0,stage.stageWidth,stage.stageHeight),ct);
+			// Clear sprite.
+			_fogOfWarLayer.graphics.clear();
+			// Draw circles
+			_fogOfWarLayer.graphics.beginFill(0xffffff);
+			_fogOfWarLayer.graphics.drawCircle(150,150,100);
+			_fogOfWarLayer.graphics.endFill();	
+			_fogOfWarMask.bitmapData.draw(_fogOfWarLayer,new Matrix(), null, BlendMode.NORMAL);
+			_fogOfWarMask.bitmapData.applyFilter(_fogOfWarMask.bitmapData,new Rectangle(0,0,_fogOfWarMask.width,_fogOfWarMask.height),new Point(0,0),_fogOfWarFilter);
+			// Clear sprite.
+			_fogOfWarLayer.graphics.clear();
+			_fogOfWarBackground = new Bitmap(_fogOfWarBackgroundData);
+			stage.addChild(_fogOfWarBackground);
+			
+			//增加帧数和内存检测
+			var fps:Fps = new Fps();
+			fps.x = 950;
+			fps.y = 650;
+			addChild(fps);
+			
+			//登录
+			var myText:TextField=new TextField();
+			myText.width = 200;
+			myText.height = 20;
+			myText.type = TextFieldType.INPUT;
+			myText.background = true;
+			myText.backgroundColor = 0xffffff;
+			myText.addEventListener(KeyboardEvent.KEY_DOWN,function(e:KeyboardEvent):void{
+				if(e.keyCode == flash.ui.Keyboard.ENTER){
+					//注册对象
+					flash.net.registerClassAlias("com.metasoft.flying.vo.general.GeneralRequest", GeneralRequest);				
+					flash.net.registerClassAlias("com.metasoft.flying.vo.general.GeneralResponse",GeneralResponse);
+					flash.net.registerClassAlias("com.metasoft.flying.vo.LoginRequest", LoginRequest);	
+					flash.net.registerClassAlias("com.metasoft.flying.vo.PkJoinRequest", PkJoinRequest);
+					flash.net.registerClassAlias("com.metasoft.flying.vo.PkGoRequest", PkGoRequest);
+					flash.net.registerClassAlias("com.metasoft.flying.vo.PkFireRequest", PkFireRequest);
+					flash.net.registerClassAlias("com.metasoft.flying.vo.PkHurtRequest", PkHurtRequest);
+					flash.net.registerClassAlias("com.metasoft.flying.vo.ChatRequest", ChatRequest);
+					flash.net.registerClassAlias("com.metasoft.flying.vo.UserVO", UserVO);
+					flash.net.registerClassAlias("com.metasoft.flying.vo.PkArenaStartVO", PkArenaStartVO);
+					flash.net.registerClassAlias("com.metasoft.flying.vo.PkPlayerVO", PkPlayerVO);
+					flash.net.registerClassAlias("com.metasoft.flying.vo.PkGoVO", PkGoVO);
+					flash.net.registerClassAlias("com.metasoft.flying.vo.PkFireVO", PkFireVO);
+					flash.net.registerClassAlias("com.metasoft.flying.vo.PkHurtVO", PkHurtVO);
+					ActionRegister.instance.registAction("event.pk.start",function(vo:PkArenaStartVO):void{
+						trace(vo.toString());
+						start(vo);
+					});
+					ActionRegister.instance.registAction("event.pk.go",function(vo:PkGoVO):void{
+						trace(vo.toString());
+						var plane:Plane = _planeArray[vo.pos];
+						plane.attackAngle=MathUtils.getAngle2(plane.x,plane.y,vo.x, vo.y);
+						TweenLite.to(plane,getDuration(plane.x,plane.y, vo.x, vo.y),{x:vo.x, y:vo.y});
+					});
+					ActionRegister.instance.registAction("event.pk.fire",function(vo:PkFireVO):void{
+						trace(vo.toString());
+						var plane:Plane = _planeArray[vo.pos];
+						var target:Plane = _planeArray[vo.target];
+						
+						//调整角度
+						plane.attackAngle=MathUtils.getAngle2(plane.x,plane.y,target.x, target.y);
+						
+						//发射两枚导弹
+						getMissle(plane.x, plane.y, plane, target);
+						getMissle(plane.x, plane.y, plane, target);
+						
+						//闪电攻击
+						_animLigtening.visible = true;
+						_animLigtening.rotation = 0;
+						_animLigtening.x = 512;//shape.x;
+						_animLigtening.y = 384;//shape.y;
+						_animLigtening.width = Math.sqrt( Math.pow(target.x-512,2) + Math.pow( target.y-384,2));
+						
+						//var v:Vector3D = new Vector3D(target.x - 512, target.y - 384);//方向
+						//var _0angle:Vector3D = new Vector3D(1);
+						//var angle:Number = Vector3D.angleBetween(v,_0angle);
+						//_animLigtening.rotation = angle/Math.PI*180*(v.y>0?1:-1);
+						_animLigtening.rotation = MathUtils.getAngle(target.x,target.y,512,384);
+						//_animLigtening.playOnFrameUpdate(onAnimComplete);
+						//帧动画,5帧每秒,是否向前播放,播完回调
+						_animLigtening.playOnFrameUpdate2(20, true, onAnimComplete);
+						
+					});
+					ActionRegister.instance.registAction("event.pk.hurt",function(vo:PkFireVO):void{
+						trace(vo.toString());
+					});
+					
+					//socket连接
+					_socketbase = new SocketBase();
+					_socketbase.debugHandler = function( msg:String):void{trace(msg);};
+					_socketbase.host = "www1.qianxunyouxi.com";
+					//_socketbase.host = "127.0.0.1";
+					_socketbase.port = 7002;
+					_socketbase.socketConn();
+					
+					//注册rpc回调
+					_socketbase.connectedFunc = function( ):void{
+						var req:LoginRequest = new LoginRequest();
+						req.name = myText.text;
+						req.cmd = "login.login";
+						req.serial = 4;//Math.random()*100000;
+						Callback.instance.registCallback(req.serial,function(vo:UserVO):void{
+							trace("login ok, userId:"+vo.userId);
+							_userVO = vo;
+							
+							var req:ChatRequest = new ChatRequest();
+							req.cmd = "chat.join";
+							req.group = _userVO.userId.toString();
+							req.serial = 5;
+							Callback.instance.registCallback(req.serial,function():void{
+								trace("chat.join ok");
+								var req:PkJoinRequest = new PkJoinRequest();
+								req.userIdList = [vo.userId];
+								req.cmd = "arena.start";
+								req.serial = 6;
+								Callback.instance.registCallback(req.serial,function():void{
+									trace("arena.start ok");
+								});
+								_socketbase.socketSend(req);
+							});
+							_socketbase.socketSend(req);
+						});
+						_socketbase.socketSend(req);
+					};
+				}
+				
+			});
+			stage.addChild(myText);
+			stage.focus = myText;
+		}
+		
+		/******************************************************************************
+		 * 按顺序添加
+		 * start
+		 */
+		private function start(vo:PkArenaStartVO):void
+		{
+			var i:int;
+			
+			var light:BitmapData = Bitmap(new LightClass()).bitmapData;	
+			var animBitmap:AnimatedBitmap = new AnimatedBitmap(light, 83, 31);
+			_animLigtening = animBitmap;
+			stage.addChild(_animLigtening);
+			
+			var missle:BitmapData = Bitmap(new MissleClass()).bitmapData;
+			_missleArray = new Vector.<Missle>();
+			for (i = 0; i < _missleMax; i++) {
+				var missleAnim:Missle = new Missle(missle, 28, 14);
+				_missleArray.push(missleAnim);
+				stage.addChild(missleAnim);
+			}
+			
+			var planeAnim:AnimatedBitmap  = new AnimatedBitmap(Bitmap(new PlaneClass()).bitmapData, 37, 31);
+			//动画方向序列数,越大方向越细
+			planeAnim.rotateSequence(18);
+			_planeArray = new Vector.<Plane>();
+			for (i = 0; i < _planeMax; i++) {
+				var plane:Plane  = new Plane(planeAnim.buffer, 37, 31);	
+				plane.anim.angleNum = 18;
+				_planeArray.push(plane);
+				stage.addChild(plane);
+			}
+
+			var smoke:BitmapData = Bitmap(new SmokeClass()).bitmapData;	
+			_smokeArray = new Vector.<Smoke>();
+			for (i = 0; i < _smokeMax; i++) {
+				var smokeAnim:Smoke = new Smoke(smoke, 67, 74);
+				smokeAnim.anim.scaleDownForward(.88,Math.PI * Math.random());//逐帧缩放
+				_smokeArray.push(smokeAnim);
+				stage.addChild(smokeAnim);
+			}
+			
+			var explode:BitmapData = Bitmap(new ExplodeClass()).bitmapData;
+			_explodeArray = new Vector.<Explode>();
+			for (i = 0; i < _explodeMax; i++) {
+				var anim:Explode = new Explode(explode, 58, 45);
+				//anim.anim.scaleDownForward(.88,Math.PI * Math.random());
+				_explodeArray.push(anim);
+				stage.addChild(anim);
+			}
+						
+			for each (var player:PkPlayerVO in vo.players) {
+				var shape:Plane = getPlane();
+				if(shape){
+					shape.userId = player.userId;
+					if(_userVO.userId==player.userId){
+						_team = player.team;
+					}
+					TweenLite.to(shape, 4, {x:player.x, y:player.y});
+				}
+			}
+			
+			addEventListener(Event.ENTER_FRAME, enterFrame);
+			stage.addEventListener(MouseEvent.MOUSE_DOWN, function (e:MouseEvent):void
+			{
+				for(var i:int = 0; i<_planeArray.length; i++){
+					var shape:Plane = _planeArray[i];
+					if(shape.userId == _userVO.userId){
+						var req:PkGoRequest = new PkGoRequest();
+						req.cmd = "arena.go";
+						req.serial = 9;
+						req.x = e.localX;
+						req.y = e.localY;
+						req.pos = i;
+						_socketbase.send(req);
+					}
+				}
+			});
+			
+		}
+		
+		private function onUpdate():void {
+			//遇障碍爆炸
+			//trace(_rose.x);
+			//if(_rose.x>300){
+			//tween.pause();
+			//onComplete();
+			//}
+			//放大
+			tween.updateTo({x:_planeArray[0].x, y:_planeArray[0].y}, false);//false means not restart
+		}
+		private function onComplete():void {
+			trace("onComplete");
+			//stage.removeChild(_rose);
+		}
+		
+		/******************************************************************************
+		 * onTimerComplete
+		 */
+		private function enterFrame(event:Event):void
+		{
+			_animLigtening.onFrameUpdate();
+			
+			var missle:Missle=null;
+			var smoke:Smoke=null;
+			for each (missle in _missleArray) 
+			{
+				if(missle.isActive && null != missle.target){
+					smoke = getSmoke(missle.x, missle.y);
+					smoke.anim.decFrameNPlay(1);
+					missle.anim.onFrameUpdate();
+					missle.moveMe();
+					if(!missle.isActive){
+						getExplode(missle.x, missle.y);
+					}
+					//missle.moveBomb();
+				}
+			}
+
+			for each (smoke in _smokeArray) 
+			{
+				smoke.anim.onFrameUpdate();
+			}
+			for each (smoke in _explodeArray) 
+			{
+				smoke.anim.onFrameUpdate();
+			}
+			
+			var plane:Plane=null;
+			for each (plane in _planeArray) 
+			{
+				plane.anim.onFrameUpdate();
+			}
+			//绘制战争迷雾,  考虑实现渐变效果....
+			//onDrawFogOfWar();
+		}
+		private function onDrawFogOfWar():void
+		{
+			var matrix:Matrix = new Matrix();
+			_fogOfWarBackgroundData.copyPixels(_fogOfWar, new Rectangle(0,0,_fogOfWar.width,_fogOfWar.height),new Point(0,0));
+			for each(var shape:Plane in _planeArray){
+				matrix.translate(shape.x-_fogOfWarMask.width*.5, shape.y-_fogOfWarMask.height*.5);
+				_fogOfWarBackgroundData.draw(_fogOfWarMask, matrix, null,BlendMode.ERASE);
+				matrix.translate(_fogOfWarMask.width*.5-shape.x, _fogOfWarMask.height*.5-shape.y);
+			}
+			stage.setChildIndex(_fogOfWarBackground, stage.numChildren-1);
+		}
+		private function onAnimComplete(s:Bitmap):void
+		{
+			s.visible = false;
+			//trace(" onAnimComplete " );
+		}
+		private function getDuration(startX:Number,startY:Number, destinationX:Number,destinationY:Number):Number{
+			var duration:Number = Math.sqrt(Math.pow((startX - destinationX),2)+Math.pow((startY - destinationY),2)) / SPEED;
+			trace("duration ", duration," x ", destinationX," y ", destinationY);
+			return duration;
+		}
+		
+		private function getPlane():Plane  {
+			var plane:Plane=null;
+			for each (plane in _planeArray) 
+			{
+				//没有播放
+				if (!plane.isActive) 
+				{
+					plane.isActive = true;	
+					plane.anim.playOnFrameUpdate3(10, true);	
+					plane.addEventListener(MouseEvent.MOUSE_DOWN,function onMousedown(e:MouseEvent):void
+					{
+						//停止冒泡
+						e.stopPropagation();
+						for(var i:int = 0; i<_planeArray.length; i++){
+							var shape:Plane = _planeArray[i];
+							if(shape.userId == _userVO.userId){
+								
+								//导弹攻击
+								var req:PkFireRequest = new PkFireRequest();
+								req.cmd = "arena.fire";
+								req.serial = 10;
+								req.type = 0;
+								req.pos = i;
+								for(var j:int = 0; j<_planeArray.length; j++){
+									var target:Plane = _planeArray[j];
+									if((e.target as Plane).userId == target.userId){
+										req.target = j;
+									}
+								}
+								
+								_socketbase.send(req);
+							}
+						}
+					});
+					break;
+				}
+			}
+			
+			return plane;
+		}
+		
+		private function getRandom(min:Number, max:Number):Number {
+			return min + (Math.random() * (max - min));
+		}
+		
+		protected function getMissle(x:uint, y:uint, plane:Plane, target:Plane):Missle
+		{
+			var missle:Missle=null;
+			for each (missle in _missleArray) 
+			{
+				//没有播放
+				if (!missle.isActive) 
+				{
+					missle.isActive = true;
+					missle.aceleration = 1;
+					missle.target = target;
+					missle.x = x;
+					missle.y = y;
+					//missle.initBomb();
+					//missle.initMissle2(plane);
+					missle.initMissle();
+					
+					//帧动画,5帧每秒,是否向前播放,播完回调
+					missle.anim.playOnFrameUpdate3(5, true);
+					return missle;
+				}
+			}
+			return null;
+		}
+		
+		protected function getSmoke(x:uint, y:uint):Smoke
+		{
+			var smoke:Smoke=null;
+			var temp:Smoke=null;
+			var i:int;
+			for (i = 0; i < _smokeArray.length; ++i) 
+			{
+				smoke = _smokeArray[i];
+				
+				//没有播放
+				if (!smoke.anim.isPlaying()) 
+				{
+					smoke.anim.visible = true;
+					randomLocation(x,y,smoke);
+					return smoke;
+				}
+				//最早的
+				if (temp != null && temp.anim.lastUpdate() > smoke.anim.lastUpdate()) 
+				{
+					continue;
+				}
+				temp = smoke;
+			}
+			randomLocation(x,y,temp);
+			return temp;
+		}
+		protected function getExplode(x:uint, y:uint):Smoke
+		{
+			var smoke:Smoke=null;
+			var temp:Smoke=null;
+			var i:int;
+			for (i = 0; i < _explodeArray.length; ++i) 
+			{
+				smoke = _explodeArray[i];
+				
+				//没有播放
+				if (!smoke.anim.isPlaying()) 
+				{
+					smoke.anim.visible = true;
+					smoke.x = x + getRandom(-1,1);
+					smoke.y = y + getRandom(-1,1);
+					smoke.anim.playOnFrameUpdate2(5, true, onAnimComplete);
+					return smoke;
+				}
+				//最早的
+				if (temp != null && temp.anim.lastUpdate() > smoke.anim.lastUpdate()) 
+				{
+					continue;
+				}
+				temp = smoke;
+			}
+			temp.anim.visible = true;
+			temp.x = x + getRandom(-5,5);
+			temp.y = y + getRandom(-5,5);
+			temp.anim.playOnFrameUpdate2(5, true, onAnimComplete);
+			return temp;
+		}
+		public function randomLocation(x:uint, y:uint, smoke:Smoke):void
+		{
+			//self.alpha = 1;
+			smoke.x = x + getRandom(-1,1);
+			smoke.y = y + getRandom(-1,1);
+			//帧动画,5帧每秒,是否向前播放,播完回调
+			var smokerate:uint = getRandom(3,15);
+			trace("smokerate:",smokerate);
+			smoke.anim.playOnFrameUpdate2(smokerate, false, onAnimComplete);
+		}
+		
+	}
+	
+}
