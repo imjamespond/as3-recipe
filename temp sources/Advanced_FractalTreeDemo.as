@@ -1,5 +1,5 @@
 /*
-
+   
 Dynamic tree generation and placement in a night-time scene
 
 Demonstrates:
