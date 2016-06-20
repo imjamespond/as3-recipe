@@ -21,7 +21,7 @@
 		private var _bounds:BoundingVolumeBase;
 		private var _miplevel:uint = 0;
 		public var stepProgress:Number;
-		public static const MAX_VERTEX:uint = 2048;
+		public static const MAX_VERTEX:uint = 256;
 		//private static var _st_indices:Vector.<Vector.<uint>>;
 		//private static var _st_indices_buff:Vector.<Vector.<IndexBuffer3D>>;
 		//private static const _ba_uvs:ByteArray = new ByteArray();

@@ -4,7 +4,7 @@
 	import flash.display3D.*;
 	import flash.geom.*;
 	import flash.utils.*;
-	import com.codechiev.ribbon.ChaosVector;
+	import com.codechiev.ribbon.Chaos;
 	
 	public class WaveBufferGenerator extends Object
 	{
@@ -72,30 +72,30 @@
 		 */
 		public function generate() : void
 		{
-			var chaosVec:ChaosVector = null;
-			var vec3d:Vector3D = null;
+			var chaos:Chaos = null;
+			var chaosVec:Vector3D = null;
 			var vertexCount:int = 0;
 			if (offset == null)
 			{
 				offset = new Vector3D();
 			}
-			chaosVec = new ChaosVector();
+			chaos = new Chaos();
 			var dataPos:uint = 0;
-			vec3d = chaosVec.vector;
+			chaosVec = chaos.vector;
 			vertexCount = 0;
 			while (vertexCount < _numVertex / 2)
 			{
-				chaosVec.step();
-				chaosVec.step();
-				chaosVec.step();
-				chaosVec.step();
-				_data[dataPos++]=vec3d.x + offset.x;
-				_data[dataPos++]=vec3d.y + offset.y;
-				_data[dataPos++]=vec3d.z + offset.z;
+				chaos.step();
+				chaos.step();
+				chaos.step();
+				chaos.step();
+				_data[dataPos++]=chaosVec.x + offset.x;
+				_data[dataPos++]=chaosVec.y + offset.y;
+				_data[dataPos++]=chaosVec.z + offset.z;
 				_data[dataPos++]=vertexCount / _numVertex;
-				_data[dataPos++]=vec3d.x + offset.x;
-				_data[dataPos++]=vec3d.y + offset.y;
-				_data[dataPos++]=vec3d.z + offset.z;
+				_data[dataPos++]=chaosVec.x + offset.x;
+				_data[dataPos++]=chaosVec.y + offset.y;
+				_data[dataPos++]=chaosVec.z + offset.z;
 				_data[dataPos++]=vertexCount / _numVertex;
 				vertexCount++;
 			}
