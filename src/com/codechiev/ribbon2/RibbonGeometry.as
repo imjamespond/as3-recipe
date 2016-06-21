@@ -227,7 +227,6 @@
 			//至少有三个结点,则更新第二个结点
 			if (currentSize > 2)
 			{
-				var temp:Number = 0;
 				//first pair first point x
 				_vertexPos = (currentSize - 3) * vertexStride * 2 + vertexOffset;
 				first.x = -_vertexData[_vertexPos+0];
@@ -235,15 +234,12 @@
 				first.z = -_vertexData[_vertexPos+2];
 				//second pair first point x
 				_vertexPos = (currentSize - 2) * vertexStride * 2 + vertexOffset;
-				temp = -_vertexData[_vertexPos+0];
-				second.x = temp;
-				first.x = first.x -temp;
-				temp = -_vertexData[_vertexPos+1];
-				second.y = temp;
-				first.y = first.y -temp;
-				temp = -_vertexData[_vertexPos+2];
-				second.z = temp;
-				first.z = first.z -temp;
+				second.x = -_vertexData[_vertexPos+0];
+				first.x = first.x -second.x;
+				second.y = -_vertexData[_vertexPos+1];
+				first.y = first.y -second.y;
+				second.z = -_vertexData[_vertexPos+2];
+				first.z = first.z -second.z;
 				//third pair first point x
 				_vertexPos = (currentSize - 1) * vertexStride * 2 + vertexOffset;
 				second.x = second.x + _vertexData[_vertexPos+0];

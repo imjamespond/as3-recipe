@@ -90,19 +90,19 @@
             code = code + AGAL.sub("vt1.w", "vc6.y", "va3.w");// 0-wave progress
             code = code + AGAL.mul("vt1.w", "vt1.w", "vc6.z");//400
             code = code + AGAL.sat("vt1.w", "vt1.w");
-            code = code + AGAL.mul("v0.w", "vt1.w", "va0.w");//power
+            code = code + AGAL.mul("v0.w", "vt1.w", "va0.w");//vertex w
 			
             code = code + AGAL.mul("vt1.w", "vt1.w", "vc6.x");//waveScale
-            code = code + AGAL.mul("vt1.xyz", "va3.xyz", "vt1.w");//chaos
-            code = code + AGAL.add("vt0.xyz", "vt0.xyz", "vt1.xyz");//add chaos
-            code = code + AGAL.add("vt1", "vt0", "va1");//tangent
+            code = code + AGAL.mul("vt1.xyz", "va3.xyz", "vt1.w");//wave * wave progress
+            code = code + AGAL.add("vt0.xyz", "vt0.xyz", "vt1.xyz");//vertex + wave
+            code = code + AGAL.add("vt1", "vt0", "va1");//vertex + tangent
             code = code + AGAL.m34("vt0.xyz", "vt0", "vc7");//vertex sceneTransform
             code = code + AGAL.mov("vt0.w", "vt0.w");
-            code = code + AGAL.m34("vt1.xyz", "vt1", "vc7");//wave sceneTransform
+            code = code + AGAL.m34("vt1.xyz", "vt1", "vc7");//tangent sceneTransform
             code = code + AGAL.mov("vt1.w", "vt0.w");
-            code = code + AGAL.sub("vt1", "vt1", "vt0");//dir wave->vertex
-            code = code + AGAL.sub("vt2", "vt0", "vc4");//dir vertex->camera
-            code = code + AGAL.cross("vt2.xyz", "vt2.xyz", "vt1.xyz");//normal
+            code = code + AGAL.sub("vt1", "vt1", "vt0");//direction tangent-vertex
+            code = code + AGAL.sub("vt2", "vt0", "vc4");//direction vertex-camera
+            code = code + AGAL.cross("vt2.xyz", "vt2.xyz", "vt1.xyz");//normal ribbon的宽方向
             code = code + AGAL.normalize("vt2.xyz", "vt2.xyz");
             code = code + AGAL.cross("vt3.xyz", "vt2.xyz", "vt1.xyz");//normal
             code = code + AGAL.mov("vt4.y", "vc5.z");//1
