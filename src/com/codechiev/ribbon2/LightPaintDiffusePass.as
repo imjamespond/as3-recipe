@@ -152,7 +152,7 @@
             _cameraPositionData[0] = camPos.x;
             _cameraPositionData[1] = camPos.y;
             _cameraPositionData[2] = camPos.z;
-            _vertexData[5] = (geom.getLength() - 2 + geom.stepProgress) / RibbonGeometry.MAX_VERTEX;
+            _vertexData[5] = (geom.getCurrentSize() - 2 + geom.stepProgress) / RibbonGeometry.MAX_VERTEX;
 			
 			context3D.setCulling(bothSides? Context3DTriangleFace.NONE : _defaultCulling);
 			

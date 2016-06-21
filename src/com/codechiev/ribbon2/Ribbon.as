@@ -1,9 +1,11 @@
 ﻿package com.codechiev.ribbon2
 {
     import __AS3__.vec.*;
+    
     import away3d.bounds.*;
     import away3d.core.base.*;
     import away3d.entities.*;
+    
     import flash.geom.*;
 
     public class Ribbon extends Mesh
@@ -66,7 +68,8 @@
 
         public function addPoint(point:Vector3D) : void
         {
-            var lastPos:Vector3D = null;
+            var lastPos:Vector3D = null;		
+			
             if (!_currentGeoms.addPoint(point, power))
             {
                 _currentGeoms.complete();
@@ -80,7 +83,10 @@
                     _currentGeoms.addPoint(point, power);
                 }*/
             }
-            return;
+			var curSize:uint =_currentGeoms.getCurrentSize();
+			while(curSize < (RibbonGeometry.MAX_VERTEX >> 1)){
+				_currentGeoms.updatePointAt(point,power,curSize++);
+			}
         }// end function
 
         public function get ribbonGeom() : RibbonGeometry

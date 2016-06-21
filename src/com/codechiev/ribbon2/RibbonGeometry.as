@@ -96,7 +96,7 @@
 			return;
 		}// end function
 		*/
-		public function getLength() : uint
+		public function getCurrentSize() : uint
 		{
 			return _currentSize;
 		}// end function
@@ -288,7 +288,7 @@
 			//
 			else
 			{
-				_vertexPos = 0;
+				_vertexPos = vertexTangentOffset;
 				_vertexData[_vertexPos+0]=1;
 				_vertexData[_vertexPos+1]=0;
 				_vertexData[_vertexPos+2]=0;

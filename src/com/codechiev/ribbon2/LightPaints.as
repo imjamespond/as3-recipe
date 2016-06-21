@@ -125,7 +125,7 @@
                 }
                 else
                 {
-                    ribbon.ribbonGeom.updatePointAt(pos, power);
+                    //ribbon.ribbonGeom.updatePointAt(pos, power);
                 }
             }
             else
