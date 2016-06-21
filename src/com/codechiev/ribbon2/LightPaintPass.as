@@ -28,18 +28,20 @@
         {
             _cameraPositionData = new Vector.<Number>(4, true);
             _cameraPositionData[3] = 1;
-            _vertexData = new Vector.<Number>(4, true);
+           // _vertexData = new Vector.<Number>(4, true);
             _fragmentData = new Vector.<Number>(4, true);
             _fragmentData[0] = 1;
             _fragmentData[1] = 1;
             _fragmentData[2] = 1;
             _fragmentData[3] = 1;
             _vertexData = new Vector.<Number>(8, true);
+			//vc5
             _vertexData[0] = 90;//ribbonWidth
             _vertexData[1] = 0;
             _vertexData[2] = 1;
             _vertexData[3] = 0.707107;
-            _vertexData[4] = 150;//waveScale
+            //vc6
+			_vertexData[4] = 150;//waveScale
             _vertexData[5] = 0;
             _vertexData[6] = 400;
             return;
@@ -85,7 +87,7 @@
             var code:String = "";
             code = code + AGAL.mov("vt0.xyz", "va0.xyz");//vertex
             code = code + AGAL.mov("vt0.w", "vc5.z");//1
-            code = code + AGAL.sub("vt1.w", "vc6.y", "va3.w");//0 chaos
+            code = code + AGAL.sub("vt1.w", "vc6.y", "va3.w");// 0-wave progress
             code = code + AGAL.mul("vt1.w", "vt1.w", "vc6.z");//400
             code = code + AGAL.sat("vt1.w", "vt1.w");
             code = code + AGAL.mul("v0.w", "vt1.w", "va0.w");//power

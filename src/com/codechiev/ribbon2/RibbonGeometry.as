@@ -74,7 +74,7 @@
 			}
 			if (_waveGenerator == null)
 			{
-				_waveGenerator = new WaveBufferGenerator(2);
+				_waveGenerator = new WaveBufferGenerator(2, MAX_VERTEX);
 				_waveGenerator.offset = new Vector3D(0, 1, 0);
 				_waveGenerator.generate();
 				_waveGenerator.fadeOut(16);
