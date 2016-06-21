@@ -73,7 +73,6 @@
 		public function generate() : void
 		{
 			var chaos:Chaos = null;
-			var chaosVec:Vector3D = null;
 			var vertexCount:int = 0;
 			if (offset == null)
 			{
@@ -81,7 +80,6 @@
 			}
 			chaos = new Chaos();
 			var dataPos:uint = 0;
-			chaosVec = chaos.vector;
 			vertexCount = 0;
 			while (vertexCount < _numVertex / 2)
 			{
@@ -89,13 +87,13 @@
 				chaos.step();
 				chaos.step();
 				chaos.step();
-				_data[dataPos++]=chaosVec.x + offset.x;
-				_data[dataPos++]=chaosVec.y + offset.y;
-				_data[dataPos++]=chaosVec.z + offset.z;
+				_data[dataPos++]=chaos.vector.x + offset.x;
+				_data[dataPos++]=chaos.vector.y + offset.y;
+				_data[dataPos++]=chaos.vector.z + offset.z;
 				_data[dataPos++]=vertexCount / _numVertex;
-				_data[dataPos++]=chaosVec.x + offset.x;
-				_data[dataPos++]=chaosVec.y + offset.y;
-				_data[dataPos++]=chaosVec.z + offset.z;
+				_data[dataPos++]=chaos.vector.x + offset.x;
+				_data[dataPos++]=chaos.vector.y + offset.y;
+				_data[dataPos++]=chaos.vector.z + offset.z;
 				_data[dataPos++]=vertexCount / _numVertex;
 				vertexCount++;
 			}

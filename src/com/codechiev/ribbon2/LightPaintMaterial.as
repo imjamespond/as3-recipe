@@ -13,7 +13,7 @@
     public class LightPaintMaterial extends MaterialBase
     {
         private var _texture:ATFCubeTexture;
-        private var _opening:Number = 0;
+        private var _opening:Number = 0;//affect ribbon width
         private var _dezoom:Number = 0;
         private var _pass:LightPaintPass;
         private var _pass2:LightPaintPass;
@@ -31,7 +31,7 @@
             _pass2.atf = new ATFCubeTexture(ResourcesManager.getResourceBytesArray("hourglass_cubemap.atf"));
             _pass.atf = _pass2.atf;
             _pass3 = new LightPaintDiffusePass();
-           	addPass(_pass3);
+           	//addPass(_pass3);
             _pass3.atf = new ATFTexture(ResourcesManager.getResourceBytesArray("fire.atf"));
             //culling = Context3DTriangleFace.NONE;
 			_pass.bothSides=true;

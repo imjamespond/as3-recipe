@@ -59,7 +59,7 @@
         public function play() : void
         {
             Tweener.removeTweens(material);
-            Tweener.addTween(material, {opening:1, time:1, delay:1});
+            Tweener.addTween(material, {opening:3, time:10, delay:1});
             lgtGroup.addChild(lstopRibbon);
             lgtGroup.addChild(rstopRibbon);
             return;
@@ -68,7 +68,7 @@
         public function stop() : void
         {
             Tweener.removeTweens(material);
-            Tweener.addTween(material, {opening:0, time:0.3, onComplete:stopComplete, transition:Equations.easeInQuad});
+            Tweener.addTween(material, {opening:0, time:10, onComplete:stopComplete, transition:Equations.easeInQuad});
             return;
         }// end function
 
