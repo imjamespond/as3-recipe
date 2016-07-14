@@ -4,6 +4,7 @@ package
 	 * adjust both vertext & vertext RGB 
 	 */	
 	import com.adobe.utils.AGALMiniAssembler;
+	import com.bit101.components.CheckBox;
 	
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
@@ -30,8 +31,13 @@ package
 		private var program:Program3D;
 		private var program2:Program3D;
 		
+		private var passCompareMode:String=Context3DCompareMode.LESS;
+		private var destinationFactor:String=Context3DBlendFactor.ZERO;
+		
 		public function AgalSetDepthTest()
 		{
+			init();
+			
 			//First, you need initialize your stage as you program any 2D projects.
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			stage.align = StageAlign.TOP_LEFT;
@@ -53,8 +59,8 @@ package
 			var vertices:Vector.<Number> = Vector.<Number>([
 				// x,y,z, uv  r,g,b
 				 0,0,.99, 1,0,  1,0,0, 
-				 1,0,.99, 1,0,  0,1,0,
-				 0,1,.99, 1,0,  0,0,1]);		
+				 1,0,0, 1,0,  0,1,0,
+				 0,1,0, 1,0,  0,0,1]);		
 			// 3 vertices, of 6 Numbers each
 			vertexbuffer = context3D.createVertexBuffer(vertices.length/8, 8);		
 			// offset 0, 3 vertices
@@ -71,7 +77,7 @@ package
 			vertexShaderAssembler.assemble( Context3DProgramType.VERTEX,
 				"mov vt0 va0\n" +
 				
-				"mul vt0.xy vt0.xy, vc0.ww \n" +
+				"mul vt0.xy vt0.xy, vc0.ww\n" +
 				"mov op, vt0\n" +
 				"mov v0, va2\n" + 
 				"mov v1, va1\n"
@@ -114,7 +120,7 @@ package
 			
 			context3D.clear (0, 0, 0, 1);
 			
-			for(var i:uint=1; i<10; i++){
+			for(var i:uint=0; i<10; i++){
 				context3D.setVertexBufferAt(0, vertexbuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
 				context3D.setVertexBufferAt(2, vertexbuffer, 5, Context3DVertexBufferFormat.FLOAT_3);	
 				context3D.setVertexBufferAt(1, vertexbuffer, 3, Context3DVertexBufferFormat.FLOAT_2);
@@ -123,7 +129,7 @@ package
 				context3D.setBlendFactors(Context3DBlendFactor.ONE, Context3DBlendFactor.ZERO);
 				context3D.setProgram(program2);
 				context3D.setCulling(Context3DTriangleFace.BACK);
-				context3D.setDepthTest(true, Context3DCompareMode.LESS);
+				context3D.setDepthTest(true, Context3DCompareMode.LESS);//the destination depth value will be updated from the source pixel when true. 
 				context3D.drawTriangles(indexBuffer);
 				context3D.setDepthTest(false, Context3DCompareMode.LESS);
 			}
@@ -131,16 +137,35 @@ package
 			context3D.setVertexBufferAt(0, vertexbuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
 			context3D.setVertexBufferAt(2, vertexbuffer, 5, Context3DVertexBufferFormat.FLOAT_3);	
 			context3D.setVertexBufferAt(1, vertexbuffer, 3, Context3DVertexBufferFormat.FLOAT_2);
-			context3D.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, new<Number>[0, 0, 0, -1]);//
+			context3D.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, new<Number>[0, 0, 0, -2]);//
 			
-			context3D.setBlendFactors(Context3DBlendFactor.ONE, Context3DBlendFactor.ZERO);
+			context3D.setBlendFactors(Context3DBlendFactor.ONE, destinationFactor);
 			context3D.setProgram(program);
 			context3D.setCulling(Context3DTriangleFace.BACK);
-			context3D.setDepthTest(false, Context3DCompareMode.GREATER);
+			context3D.setDepthTest(false, passCompareMode);
 			context3D.drawTriangles(indexBuffer);
 			context3D.setDepthTest(false, Context3DCompareMode.LESS);
 			//context3D.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, new<Number>[getTimer()/1000, 0, 0, 0]);//x,y,z,w
 			context3D.present();
+		}
+		
+		public function init():void{
+			new CheckBox(this, 0, 0, "less or greater", function(e:Event):void{
+				var selected:Boolean = e.currentTarget.selected;
+				if(selected)
+					passCompareMode = Context3DCompareMode.GREATER;
+				else
+					passCompareMode = Context3DCompareMode.LESS;
+			});
+			
+			new CheckBox(this, 0, 20, "destinationFactor", function(e:Event):void{
+				var selected:Boolean = e.currentTarget.selected;
+				if(selected)
+					destinationFactor = Context3DBlendFactor.DESTINATION_ALPHA;
+				else
+					destinationFactor = Context3DBlendFactor.ZERO;
+			});
+			
 		}
 	}
 }
