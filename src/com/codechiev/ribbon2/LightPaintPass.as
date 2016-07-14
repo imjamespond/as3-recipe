@@ -19,7 +19,7 @@
     public class LightPaintPass extends MaterialPassBase
     {
         private var _diffuseColor:uint;
-        private var _fragmentData:Vector.<Number>;
+        //private var _fragmentData:Vector.<Number>;
         private var _vertexData:Vector.<Number>;
         private var _cameraPositionData:Vector.<Number>;
         private var _texture:ATFCubeTexture;
@@ -29,17 +29,17 @@
             _cameraPositionData = new Vector.<Number>(4, true);
             _cameraPositionData[3] = 1;
            // _vertexData = new Vector.<Number>(4, true);
-            _fragmentData = new Vector.<Number>(4, true);
+           /* _fragmentData = new Vector.<Number>(4, true);
             _fragmentData[0] = 1;
             _fragmentData[1] = 1;
             _fragmentData[2] = 1;
-            _fragmentData[3] = 1;
+            _fragmentData[3] = 1;*/
             _vertexData = new Vector.<Number>(8, true);
 			//vc5
             _vertexData[0] = 90;//ribbonWidth
             _vertexData[1] = 0;
             _vertexData[2] = 1;
-            _vertexData[3] = 0.707107;
+            _vertexData[3] = 0.707107;//sqrt(2)/2
             //vc6
 			_vertexData[4] = 150;//waveScale
             _vertexData[5] = 0;
@@ -107,30 +107,30 @@
             code = code + AGAL.cross("vt3.xyz", "vt2.xyz", "vt1.xyz");//normal
             code = code + AGAL.mov("vt4.y", "vc5.z");//1
             code = code + AGAL.mov("vt4.xz", "vc5.y");//0
-            code = code + AGAL.cross("vt4.xyz", "vt4.xyz", "vt1.xyz");
+            code = code + AGAL.cross("vt4.xyz", "vt4.xyz", "vt1.xyz");// (1,0,0)cross ribbon的宽方向
             code = code + AGAL.normalize("vt4.xyz", "vt4.xyz");
-            code = code + AGAL.dp3("vt1.w", "vt3.xyz", "vt4.xyz");
-            code = code + AGAL.mov("v0.x", "vt1.w");
-            code = code + AGAL.mov("v0.y", "vt3.y");
+            code = code + AGAL.dp3("vt1.w", "vt3.xyz", "vt4.xyz");//angle
+            code = code + AGAL.mov("v0.x", "vt1.w");//u
+            code = code + AGAL.mov("v0.y", "vt3.y");//v
 			
             code = code + AGAL.mov("vt4.x", "vt1.w");
             code = code + AGAL.mov("vt4.y", "vt3.y");
-            code = code + AGAL.mov("vt4.zw", "vc5.y");
+            code = code + AGAL.mov("vt4.zw", "vc5.y");//0
             code = code + AGAL.normalize("vt4.xyz", "vt4.xyz");
-            code = code + AGAL.mov("vt3.xy", "vc5.w");
-            code = code + AGAL.mov("vt3.zw", "vc5.y");
+            code = code + AGAL.mov("vt3.xy", "vc5.w");//sqrt(2)/2
+            code = code + AGAL.mov("vt3.zw", "vc5.y");//0
             code = code + "abs vt4.xy, vt4.xy\n";
             code = code + AGAL.dp3("vt1.z", "vt4", "vt3");
-            code = code + AGAL.div("vt1.z", "vc5.w", "vt1.z");
+            code = code + AGAL.div("vt1.z", "vc5.w", "vt1.z");//sqrt(2)/2
             code = code + AGAL.mul("vt1.z", "vt1.z", "va2.x");//uv
             code = code + AGAL.neg("v0.z", "vt1.z");
 			
             code = code + AGAL.mul("vt2", "vt2", "vc5.x");//ribbonWidth
             code = code + AGAL.mul("vt2", "vt2", "va2.x");//uv
             code = code + AGAL.add("vt1", "vt0", "vt2");
-            code = code + AGAL.m33("vt1.xyz", "vt1", "vc11");
-            code = code + AGAL.m44("vt0", "vt1", "vc0");
-            code = code + AGAL.mov("op", "vt0");
+            //code = code + AGAL.m33("vt1.xyz", "vt1", "vc11");// vertex * scene inverse
+            code = code + AGAL.m44("vt0", "vt1", "vc0");// vertex * view
+            code = code + AGAL.mov("op", "vt0");//vertex
             return code;
         }// end function
 
