@@ -4,7 +4,7 @@ package
 	 * adjust both vertext & vertext RGB 
 	 */	
 	import com.adobe.utils.AGALMiniAssembler;
-	import com.bit101.components.CheckBox;
+	import com.bit101.components.*;
 	
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
@@ -27,12 +27,17 @@ package
 	{
 		private var context3D:Context3D;
 		private var vertexbuffer:VertexBuffer3D;
+		private var vertexbuffer2:VertexBuffer3D;
 		private var indexBuffer:IndexBuffer3D; 
 		private var program:Program3D;
 		private var program2:Program3D;
 		
 		private var passCompareMode:String=Context3DCompareMode.LESS;
 		private var destinationFactor:String=Context3DBlendFactor.ZERO;
+		private var depthMask:Boolean=true;
+		private var depthMask2:Boolean=false;
+		
+		private var vertices:Vector.<Number>;
 		
 		public function AgalSetDepthTest()
 		{
@@ -54,22 +59,16 @@ package
 			//Initialize context3D;		
 			context3D = stage.stage3Ds[0].context3D;				
 			context3D.configureBackBuffer(500, 500, 1, true);
-			
-			//Init vertex buffer.
-			var vertices:Vector.<Number> = Vector.<Number>([
+			vertices = Vector.<Number>([
 				// x,y,z, uv  r,g,b
-				 0,0,.99, 1,0,  1,0,0, 
-				 1,0,0, 1,0,  0,1,0,
-				 0,1,0, 1,0,  0,0,1]);		
-			// 3 vertices, of 6 Numbers each
+				 0,0,0, 1,0,  1,0,0, 
+				 1,0,.99, 1,0,  0,1,0,
+				 0,1,.99, 1,0,  0,0,1]);		
 			vertexbuffer = context3D.createVertexBuffer(vertices.length/8, 8);		
-			// offset 0, 3 vertices
 			vertexbuffer.uploadFromVector(vertices, 0, vertices.length/8);
-			
-			//Init index buffer
-			// total of 3 indices. 1 triangles by 3 vertices
+			vertexbuffer2 = context3D.createVertexBuffer(vertices.length/8, 8);		
+			vertexbuffer2.uploadFromVector(vertices, 0, vertices.length/8);
 			indexBuffer = context3D.createIndexBuffer(3);						
-			// offset 0, count 3
 			indexBuffer.uploadFromVector (Vector.<uint>([0, 2, 1]), 0, 3);
 				
 			//Create vertex assembler;
@@ -97,7 +96,7 @@ package
 			vertexShaderAssembler2.assemble( Context3DProgramType.VERTEX,
 				"mov vt0 va0\n" +
 				
-				"sub vt0.xyz vt0.xyz, vc0.www \n" +
+				"sub vt0.xy vt0.xy, vc0.ww \n" +
 				"mov op, vt0\n" +
 				"mov v0, va2\n" + 
 				"mov v1, va1\n"
@@ -129,20 +128,20 @@ package
 				context3D.setBlendFactors(Context3DBlendFactor.ONE, Context3DBlendFactor.ZERO);
 				context3D.setProgram(program2);
 				context3D.setCulling(Context3DTriangleFace.BACK);
-				context3D.setDepthTest(true, Context3DCompareMode.LESS);//the destination depth value will be updated from the source pixel when true. 
+				context3D.setDepthTest(depthMask, Context3DCompareMode.LESS);//the destination depth value will be updated from the source pixel when true. 
 				context3D.drawTriangles(indexBuffer);
 				context3D.setDepthTest(false, Context3DCompareMode.LESS);
 			}
 			
-			context3D.setVertexBufferAt(0, vertexbuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
-			context3D.setVertexBufferAt(2, vertexbuffer, 5, Context3DVertexBufferFormat.FLOAT_3);	
-			context3D.setVertexBufferAt(1, vertexbuffer, 3, Context3DVertexBufferFormat.FLOAT_2);
+			context3D.setVertexBufferAt(0, vertexbuffer2, 0, Context3DVertexBufferFormat.FLOAT_3);
+			context3D.setVertexBufferAt(2, vertexbuffer2, 5, Context3DVertexBufferFormat.FLOAT_3);	
+			context3D.setVertexBufferAt(1, vertexbuffer2, 3, Context3DVertexBufferFormat.FLOAT_2);
 			context3D.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, new<Number>[0, 0, 0, -2]);//
 			
 			context3D.setBlendFactors(Context3DBlendFactor.ONE, destinationFactor);
 			context3D.setProgram(program);
 			context3D.setCulling(Context3DTriangleFace.BACK);
-			context3D.setDepthTest(false, passCompareMode);
+			context3D.setDepthTest(depthMask2, passCompareMode);
 			context3D.drawTriangles(indexBuffer);
 			context3D.setDepthTest(false, Context3DCompareMode.LESS);
 			//context3D.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, new<Number>[getTimer()/1000, 0, 0, 0]);//x,y,z,w
@@ -153,9 +152,9 @@ package
 			new CheckBox(this, 0, 0, "less or greater", function(e:Event):void{
 				var selected:Boolean = e.currentTarget.selected;
 				if(selected)
-					passCompareMode = Context3DCompareMode.GREATER;
+					passCompareMode = Context3DCompareMode.GREATER_EQUAL;
 				else
-					passCompareMode = Context3DCompareMode.LESS;
+					passCompareMode = Context3DCompareMode.LESS_EQUAL;
 			});
 			
 			new CheckBox(this, 0, 20, "destinationFactor", function(e:Event):void{
@@ -166,6 +165,24 @@ package
 					destinationFactor = Context3DBlendFactor.ZERO;
 			});
 			
+			new CheckBox(this, 0, 40, "depthMask", function(e:Event):void{
+				var selected:Boolean = e.currentTarget.selected;
+				if(selected)
+					depthMask = true;
+				else
+					depthMask = false;
+			});
+			new CheckBox(this, 0, 60, "depthMask2", function(e:Event):void{
+				var selected:Boolean = e.currentTarget.selected;
+				if(selected)
+					depthMask2 = true;
+				else
+					depthMask2 = false;
+			});
+			new HSlider(this, 0, 80, function(e:Event):void{
+				vertices[2] = e.currentTarget.value;
+				vertexbuffer2.uploadFromVector(vertices, 0, vertices.length/8);
+			}).setSliderParams(-1, 1, 0);
 		}
 	}
 }
