@@ -119,6 +119,18 @@ package
 			
 			context3D.clear (0, 0, 0, 1);
 			
+			context3D.setVertexBufferAt(0, vertexbuffer2, 0, Context3DVertexBufferFormat.FLOAT_3);
+			context3D.setVertexBufferAt(2, vertexbuffer2, 5, Context3DVertexBufferFormat.FLOAT_3);	
+			context3D.setVertexBufferAt(1, vertexbuffer2, 3, Context3DVertexBufferFormat.FLOAT_2);
+			context3D.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, new<Number>[0, 0, 0, 2]);//
+			
+			context3D.setBlendFactors(Context3DBlendFactor.ONE, destinationFactor);
+			context3D.setProgram(program);
+			context3D.setCulling(Context3DTriangleFace.BACK);
+			context3D.setDepthTest(depthMask2, passCompareMode);
+			context3D.drawTriangles(indexBuffer);
+			context3D.setDepthTest(false, Context3DCompareMode.LESS);
+			
 			for(var i:uint=0; i<10; i++){
 				context3D.setVertexBufferAt(0, vertexbuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
 				context3D.setVertexBufferAt(2, vertexbuffer, 5, Context3DVertexBufferFormat.FLOAT_3);	
